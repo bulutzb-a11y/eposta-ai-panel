@@ -19,8 +19,8 @@ function decodeMimeHeader(text: string): string {
   });
 }
 
-export async function GET() {
-  return new Promise((resolve) => {
+export async function GET(): Promise<NextResponse> {
+  return new Promise<NextResponse>((resolve) => {
     const host = 'mail.kurumsaleposta.com';
     const port = 993; // IMAP SSL Portu
     const user = 'tanitim@cumhuriyeticinkos.com';
