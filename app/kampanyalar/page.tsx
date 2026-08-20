@@ -117,7 +117,6 @@ export default function KampanyalarPage() {
 
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
   
-  // SADECE HEDEF KİTLE SEÇENEKLERİNE 'group' VE SEÇİLİ GRUP STATE'İ EKLENDİ
   const [targetAudience, setTargetAudience] = useState<'all' | 'group' | 'custom'>('all');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
 
@@ -129,8 +128,7 @@ export default function KampanyalarPage() {
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
 
-  // SİSTEMDEKİ TÜM MEVCUT GRUPLARI VE ÜYE SAYILARINI HESAPLAMA
-  const existingGroups = Array.from(new Set(contacts.map((c: any) => c.group_name || 'Genel')));
+  const existingGroups: string[] = Array.from(new Set(contacts.map((c: any) => (c.group_name || 'Genel') as string)));
 
   useEffect(() => {
     localStorage.setItem('my_email_connection', JSON.stringify({
@@ -174,8 +172,7 @@ export default function KampanyalarPage() {
       if (allContacts.length > 0) {
         setContacts(allContacts);
         localStorage.setItem('my_email_members', JSON.stringify(allContacts));
-        // Varsayılan ilk grubu seç
-        const groups = Array.from(new Set(allContacts.map((c: any) => c.group_name || 'Genel')));
+        const groups: string[] = Array.from(new Set(allContacts.map((c: any) => (c.group_name || 'Genel') as string)));
         if (groups.length > 0) setSelectedGroup(groups[0]);
       }
     }
@@ -185,20 +182,19 @@ export default function KampanyalarPage() {
       try { 
         const parsed = JSON.parse(localMembers);
         setContacts(parsed);
-        const groups = Array.from(new Set(parsed.map((c: any) => c.group_name || 'Genel')));
+        const groups: string[] = Array.from(new Set(parsed.map((c: any) => (c.group_name || 'Genel') as string)));
         if (groups.length > 0) setSelectedGroup(groups[0]);
       } catch (e) {}
     }
     
     fetchAllContactsFromSupabase();
 
-    // ÜYELER SAYFASINDAN GELEN SEÇİMİ YAKALA
     const pending = localStorage.getItem('pendingQueueIds');
     if (pending) {
       try {
         const ids = JSON.parse(pending);
         if (Array.isArray(ids) && ids.length > 0) {
-          setSelectedContactKeys(ids.map(id => String(id)));
+          setSelectedContactKeys(ids.map((id: any) => String(id)));
           setTargetAudience('custom');
           localStorage.removeItem('pendingQueueIds');
         }
@@ -251,7 +247,6 @@ export default function KampanyalarPage() {
     if (targetAudience === 'all') {
       initialTarget = contacts;
     } else if (targetAudience === 'group') {
-      // GRUP SEÇİMİNE GÖRE FİLTRELEME
       if (!selectedGroup) {
         alert("Lütfen bir grup seçin!");
         return;
@@ -261,7 +256,7 @@ export default function KampanyalarPage() {
       initialTarget = contacts.filter((c: any) => {
         const cKeyId = String(c.id).toLowerCase();
         const cKeyEmail = String(c.email).toLowerCase();
-        return selectedContactKeys.some(k => {
+        return selectedContactKeys.some((k: any) => {
           const key = String(k).toLowerCase();
           return key === cKeyId || key === cKeyEmail;
         });
@@ -273,10 +268,9 @@ export default function KampanyalarPage() {
       return;
     }
 
-    // MÜKERRER KONTROLÜ
     const sentHistory: string[] = JSON.parse(localStorage.getItem('my_sent_email_history') || '[]');
     const targetContacts = initialTarget.filter(
-      c => !sentHistory.includes((c.email || '').toLowerCase())
+      (c: any) => !sentHistory.includes((c.email || '').toLowerCase())
     );
 
     if (targetContacts.length === 0) {
@@ -298,7 +292,7 @@ export default function KampanyalarPage() {
       scheduled_at: scheduleType === 'now' ? 'Hemen Başlatıldı' : `${scheduledDate} ${scheduledTime}`,
       created_at: new Date().toLocaleDateString('tr-TR'),
       sent_recipients: [],
-      pending_recipients: targetContacts.map(c => ({ 
+      pending_recipients: targetContacts.map((c: any) => ({ 
         email: c.email, 
         name: `${c.first_name || c.name || 'Değerli Üyemiz'}` 
       })),
@@ -416,7 +410,6 @@ export default function KampanyalarPage() {
                 <h3 className="text-lg font-bold text-slate-800">2. Hedef Kitle</h3>
                 
                 <div className="space-y-3">
-                  {/* SEÇENEK 1: TÜM ÜYELER */}
                   <label className={`p-4 rounded-xl border-2 flex items-center justify-between cursor-pointer transition-all ${
                     targetAudience === 'all' ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-200'
                   }`}>
@@ -436,7 +429,6 @@ export default function KampanyalarPage() {
                     <span className="text-xs font-bold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md">{contacts.length} Kişi</span>
                   </label>
 
-                  {/* SEÇENEK 2: GRUP / LİSTE SEÇİMİ (YENİ EKLENEN KISIM) */}
                   <label className={`p-4 rounded-xl border-2 flex flex-col cursor-pointer transition-all ${
                     targetAudience === 'group' ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-200'
                   }`}>
@@ -480,7 +472,6 @@ export default function KampanyalarPage() {
                     )}
                   </label>
 
-                  {/* SEÇENEK 3: ÖZEL KİŞİ SEÇİMİ */}
                   <label className={`p-4 rounded-xl border-2 flex items-center justify-between cursor-pointer transition-all ${
                     targetAudience === 'custom' ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-200'
                   }`}>
@@ -533,7 +524,7 @@ export default function KampanyalarPage() {
                         filteredContacts.map((c: any) => {
                           const cKeyId = String(c.id).toLowerCase();
                           const cKeyEmail = String(c.email).toLowerCase();
-                          const isChecked = selectedContactKeys.some(k => {
+                          const isChecked = selectedContactKeys.some((k: any) => {
                             const key = String(k).toLowerCase();
                             return key === cKeyId || key === cKeyEmail;
                           });
@@ -551,7 +542,7 @@ export default function KampanyalarPage() {
                                   onChange={() => {
                                     setSelectedContactKeys(prev => 
                                       isChecked
-                                        ? prev.filter(k => {
+                                        ? prev.filter((k: any) => {
                                             const lowerK = String(k).toLowerCase();
                                             return lowerK !== cKeyId && lowerK !== cKeyEmail;
                                           }) 
